@@ -46,9 +46,11 @@
         </MapsToggleLegendSettings>
     </MapsLegendSettings>
 
-    <MapsCenterPosition Latitude="52.520008" Longitude="13.404954" />
+    @*<MapsCenterPosition Latitude="52.520008" Longitude="13.404954" />*@
+    <MapsCenterPosition Latitude=lat Longitude=lng />
+
     @* To Enable property of MapsZoomSettings etc *@
-    <MapsZoomSettings Enable="true" ZoomFactor="8" EnablePanning="true" MouseWheelZoom="true">
+    <MapsZoomSettings Enable="true" ZoomFactor="10" EnablePanning="true" MouseWheelZoom="true">
 
         <MapsZoomToolbarSettings></MapsZoomToolbarSettings>
 
@@ -108,22 +110,21 @@ Position History :
     @*private WindowNavigatorGeolocation geolocation;
         private GeolocationPosition geolocationPosition;*@
 
-    private WindowNavigatorGeolocation geolocationWrapper;
-    private GeolocationPosition currentPosition;
-    private List<GeolocationPosition> positionHistory = new List<GeolocationPosition>();
-    private IAsyncDisposable geopositionWatcher;
+private WindowNavigatorGeolocation geolocationWrapper;
+private GeolocationPosition currentPosition;
+private List<GeolocationPosition> positionHistory = new List<GeolocationPosition>();
+private IAsyncDisposable geopositionWatcher;
 
-    SfMaps maps;
-    public double lat { get; set; }
-    public double lng { get; set; }
+SfMaps maps;
+public double lat { get; set; }
+public double lng { get; set; }
 
-    public ObservableCollection<MarkerData> MarkerDataSource { get; set; }
+public ObservableCollection<MarkerData> MarkerDataSource { get; set; }
 
-
-    protected override async Task OnInitializedAsync()
-    {
-        var window = await jsRuntime.Window();
-        var navigator = await window.Navigator();
+protected override async Task OnInitializedAsync()
+{
+    var window = await jsRuntime.Window();
+    var navigator = await window.Navigator();
     @*geolocation = navigator.Geolocation;*@
         geolocationWrapper = navigator.Geolocation;
     }
