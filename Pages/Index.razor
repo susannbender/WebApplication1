@@ -1,0 +1,235 @@
+﻿@page "/"
+@inject IJSRuntime jsRuntime
+@using BrowserInterop.Extensions
+@using BrowserInterop.Geolocation
+@using Syncfusion.Blazor.Maps
+@using System.Collections.ObjectModel
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Maps
+
+@implements IAsyncDisposable
+@*<h1>Hello, world! </h1>*@
+
+<h3>
+    This is a GPS-Tracker.
+    Here we start testing.
+</h3>
+
+<h4>Your Position</h4>
+@*<button type="button" @onclick="GetLocation">Get Position</button>*@
+
+<button type="button" @onclick="GetGeolocation">Get Current Position</button>
+<button type="button" @onclick="WatchPosition">Watch position</button>
+<button type="button" @onclick="StopWatch">Stop watch</button>
+
+@*@if (geolocationPosition != null)
+    {
+        <div>
+            Latitude: @geolocationPosition.Coords.Latitude<br />
+            Longitude: @geolocationPosition.Coords.Longitude<br />
+            Accuracy: @geolocationPosition.Coords.Accuracy<br />
+        </div>
+    }*@
+
+<SfMaps @ref="maps">
+    <MapsEvents OnClick="GetGeolocation"></MapsEvents>
+    @*<MapsEvents OnClick="WatchPosition"></MapsEvents>*@
+
+    @* To add title *@
+    <MapsTitleSettings Text="Actual Location"></MapsTitleSettings>
+
+    @* To add legend *@
+    <MapsLegendSettings Visible="true">
+
+        <MapsToggleLegendSettings Enable="true" ApplyShapeSettings="false">
+            <MapsLegendBorder Width="2" Color="green"></MapsLegendBorder>
+        </MapsToggleLegendSettings>
+    </MapsLegendSettings>
+
+    <MapsCenterPosition Latitude="52.520008" Longitude="13.404954" />
+    @* To Enable property of MapsZoomSettings etc *@
+    <MapsZoomSettings Enable="true" ZoomFactor="8" EnablePanning="true" MouseWheelZoom="true">
+
+        <MapsZoomToolbarSettings></MapsZoomToolbarSettings>
+
+    </MapsZoomSettings>
+
+    <MapsLayers>
+        <MapsLayer UrlTemplate="https://a.tile.openstreetmap.org/level/tileX/tileY.png" TValue="string">
+            @* Add markers *@
+            @*<MapsMarkerSettings>
+                    <MapsMarker Visible="true" Height="20" Width="20" DataSource="Cities" TValue="City">
+                    </MapsMarker>
+                </MapsMarkerSettings>*@
+            <MapsMarkerSettings>
+                <MapsMarker TValue="MarkerData" DataSource="MarkerDataSource" Visible="true" Height="20" Width="20" Fill="red" AnimationDuration="0" Shape="MarkerType.Balloon">
+                </MapsMarker>
+            </MapsMarkerSettings>
+            @* Add navigation line *@
+        </MapsLayer>
+
+    </MapsLayers>
+</SfMaps>
+
+@if (currentPosition != null)
+{
+<div>
+    Current position :
+    <ul>
+        <li>Latitude : @currentPosition.Coords.Latitude </li>
+        <li>Longitude : @currentPosition.Coords.Longitude </li>
+        <li>Altitude : @currentPosition.Coords.Altitude </li>
+        <li>Accuracy : @currentPosition.Coords.Accuracy </li>
+        <li>Altitude Accuracy : @currentPosition.Coords.AltitudeAccuracy </li>
+        <li>Heading : @currentPosition.Coords.Heading </li>
+        <li>Speed : @currentPosition.Coords.Speed </li>
+    </ul>
+</div>
+}
+
+Position History :
+@foreach (var item in positionHistory)
+{
+<div>
+    -----
+    <ul>
+        <li>Latitude : @item.Coords.Latitude </li>
+        <li>Longitude : @item.Coords.Longitude </li>
+        <li>Altitude : @item.Coords.Altitude </li>
+        <li>Accuracy : @item.Coords.Accuracy </li>
+        <li>Altitude Accuracy : @item.Coords.AltitudeAccuracy </li>
+        <li>Heading : @item.Coords.Heading </li>
+        <li>Speed : @item.Coords.Speed </li>
+    </ul>
+</div>
+}
+
+@code{
+    @*private WindowNavigatorGeolocation geolocation;
+        private GeolocationPosition geolocationPosition;*@
+
+    private WindowNavigatorGeolocation geolocationWrapper;
+    private GeolocationPosition currentPosition;
+    private List<GeolocationPosition> positionHistory = new List<GeolocationPosition>();
+    private IAsyncDisposable geopositionWatcher;
+
+    SfMaps maps;
+    public double lat { get; set; }
+    public double lng { get; set; }
+
+    public ObservableCollection<MarkerData> MarkerDataSource { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var window = await jsRuntime.Window();
+        var navigator = await window.Navigator();
+    @*geolocation = navigator.Geolocation;*@
+        geolocationWrapper = navigator.Geolocation;
+    }
+
+    @*public async Task GetLocation()
+        {
+            geolocationPosition = (await geolocation.GetCurrentPosition(new PositionOptions()
+            {
+                EnableHighAccuracy = true,
+                MaximumAgeTimeSpan = TimeSpan.FromHours(1),
+                TimeoutTimeSpan = TimeSpan.FromMinutes(1)
+            })).Location;
+        }*@
+
+    public class MarkerData
+    {
+        public Nullable<double> latitude { get; set; }
+        public Nullable<double> longitude { get; set; }
+        public static ObservableCollection<MarkerData> GetData()
+        {
+            ObservableCollection<MarkerData> MarkerDataSource = new ObservableCollection<MarkerData>()
+            {
+                //new MarkerData { latitude = 45.4972159, longitude = -73.6103642 },
+            };
+            return MarkerDataSource;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        this.MarkerDataSource = MarkerData.GetData();
+    }
+
+    public async Task GetGeolocation()
+    {
+        currentPosition = (await geolocationWrapper.GetCurrentPosition(new PositionOptions()
+        {
+            EnableHighAccuracy = true,
+            MaximumAgeTimeSpan = TimeSpan.FromHours(1),
+            TimeoutTimeSpan = TimeSpan.FromMinutes(1)
+        })).Location;
+
+        lat = currentPosition.Coords.Latitude;
+        lng = currentPosition.Coords.Longitude;
+        updateMarkers(lat, lng);
+    }
+
+    //void GeoValue(Syncfusion.Blazor.Maps.MouseEventArgs args1)
+    //{
+    //    lat = currentPosition.Coords.Latitude;
+    //    lng = currentPosition.Coords.Longitude;
+    //    updateMarkers(lat, lng);
+    //}
+
+    public void updateMarkers(double lat, double lng)
+    {
+        this.MarkerDataSource.Add(new MarkerData { latitude = lat, longitude = lng });
+        maps.Refresh();
+    }
+
+    public async Task WatchPosition()
+    {
+        geopositionWatcher = await geolocationWrapper.WatchPosition(async (p) =>
+        {
+            positionHistory.Add(p.Location);
+            StateHasChanged();
+
+    //lat = currentPosition.Coords.Latitude;
+    //lng = currentPosition.Coords.Longitude;
+    //updateMarkers(lat, lng);
+}
+        );
+    }
+
+    public async Task StopWatch()
+    {
+        await geopositionWatcher.DisposeAsync();
+        geopositionWatcher = null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopWatch();
+    }
+
+    public class City
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string Name { get; set; }
+    }
+
+
+    private List<City> Cities = new List<City> {
+        new City { Latitude =  52.520008, Longitude = 13.404954,  Name="Berlin" },
+        //new City{ Latitude = 40.724546, Longitude = -73.850344,  Name="New York"}
+    };
+
+    //public class Location
+    //{
+    //    public double Latitude { get; set; }
+    //    public double Longitude { get; set; }
+    //}
+
+    //private List<Location> Locations = new List<Location> {
+    //        new Location { Latitude = @currentPosition.Coords.Latitude, Longitude = -118.330491},
+    //    };
+
+}
