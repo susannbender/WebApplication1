@@ -181,7 +181,7 @@
       "url": "sample-data\/weather.json"
     },
     {
-      "hash": "sha256-V3XVX3YEw9cQoQlOxsxGbLzBoQjQaqOlCfH8RKQyjYY=",
+      "hash": "sha256-KC1BHHH9vxw9SWTs+YLEsfIXPJx9ZrPY9kU\/w8YV4wg=",
       "url": "_framework\/_bin\/WebApplication1.dll"
     },
     {
@@ -473,9 +473,9 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-Pd9RSm28daWPw6N6U2lqSAwUYSGEkVACRmh5KPZyXEA=",
+      "hash": "sha256-KKP+8OwhDStX2MiAxBP3BIyVGtWo4qqV\/eE9Gw9mT8U=",
       "url": "_framework\/blazor.boot.json"
     }
   ],
-  "version": "IZD64Yu4"
+  "version": "OUJXX618"
 };
