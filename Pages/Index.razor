@@ -138,98 +138,98 @@ Position History :
             })).Location;
         }*@
 
-    public class MarkerData
+public class MarkerData
+{
+    public Nullable<double> latitude { get; set; }
+    public Nullable<double> longitude { get; set; }
+    public static ObservableCollection<MarkerData> GetData()
     {
-        public Nullable<double> latitude { get; set; }
-        public Nullable<double> longitude { get; set; }
-        public static ObservableCollection<MarkerData> GetData()
+        ObservableCollection<MarkerData> MarkerDataSource = new ObservableCollection<MarkerData>()
         {
-            ObservableCollection<MarkerData> MarkerDataSource = new ObservableCollection<MarkerData>()
-            {
-                //new MarkerData { latitude = 45.4972159, longitude = -73.6103642 },
-            };
-            return MarkerDataSource;
-        }
+            //new MarkerData { latitude = 45.4972159, longitude = -73.6103642 },
+        };
+        return MarkerDataSource;
     }
+}
 
-    protected override void OnInitialized()
+protected override void OnInitialized()
+{
+    this.MarkerDataSource = MarkerData.GetData();
+}
+
+public async Task GetGeolocation()
+{
+    currentPosition = (await geolocationWrapper.GetCurrentPosition(new PositionOptions()
     {
-        this.MarkerDataSource = MarkerData.GetData();
-    }
+        EnableHighAccuracy = true,
+        MaximumAgeTimeSpan = TimeSpan.FromHours(1),
+        TimeoutTimeSpan = TimeSpan.FromMinutes(1)
+    })).Location;
 
-    public async Task GetGeolocation()
+    lat = currentPosition.Coords.Latitude;
+    lng = currentPosition.Coords.Longitude;
+    updateMarkers(lat, lng);
+}
+
+//void GeoValue(Syncfusion.Blazor.Maps.MouseEventArgs args1)
+//{
+//    lat = currentPosition.Coords.Latitude;
+//    lng = currentPosition.Coords.Longitude;
+//    updateMarkers(lat, lng);
+//}
+
+public void updateMarkers(double lat, double lng)
+{
+    this.MarkerDataSource.Add(new MarkerData { latitude = lat, longitude = lng });
+    maps.Refresh();
+}
+
+public async Task WatchPosition()
+{
+    geopositionWatcher = await geolocationWrapper.WatchPosition(async (p) =>
     {
-        currentPosition = (await geolocationWrapper.GetCurrentPosition(new PositionOptions()
-        {
-            EnableHighAccuracy = true,
-            MaximumAgeTimeSpan = TimeSpan.FromHours(1),
-            TimeoutTimeSpan = TimeSpan.FromMinutes(1)
-        })).Location;
+        positionHistory.Add(p.Location);
+        StateHasChanged();
 
-        lat = currentPosition.Coords.Latitude;
-        lng = currentPosition.Coords.Longitude;
+        lat = p.Location.Coords.Latitude;
+        lng = p.Location.Coords.Longitude;
         updateMarkers(lat, lng);
     }
-
-    //void GeoValue(Syncfusion.Blazor.Maps.MouseEventArgs args1)
-    //{
-    //    lat = currentPosition.Coords.Latitude;
-    //    lng = currentPosition.Coords.Longitude;
-    //    updateMarkers(lat, lng);
-    //}
-
-    public void updateMarkers(double lat, double lng)
-    {
-        this.MarkerDataSource.Add(new MarkerData { latitude = lat, longitude = lng });
-        maps.Refresh();
-    }
-
-    public async Task WatchPosition()
-    {
-        geopositionWatcher = await geolocationWrapper.WatchPosition(async (p) =>
-        {
-            positionHistory.Add(p.Location);
-            StateHasChanged();
-
-    //lat = currentPosition.Coords.Latitude;
-    //lng = currentPosition.Coords.Longitude;
-    //updateMarkers(lat, lng);
+    );
 }
-        );
-    }
 
-    public async Task StopWatch()
-    {
-        await geopositionWatcher.DisposeAsync();
-        geopositionWatcher = null;
-    }
+public async Task StopWatch()
+{
+    await geopositionWatcher.DisposeAsync();
+    geopositionWatcher = null;
+}
 
-    public async ValueTask DisposeAsync()
-    {
-        await StopWatch();
-    }
+public async ValueTask DisposeAsync()
+{
+    await StopWatch();
+}
 
-    public class City
-    {
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public string Name { get; set; }
-    }
+public class City
+{
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public string Name { get; set; }
+}
 
 
-    private List<City> Cities = new List<City> {
+private List<City> Cities = new List<City> {
         new City { Latitude =  52.520008, Longitude = 13.404954,  Name="Berlin" },
         //new City{ Latitude = 40.724546, Longitude = -73.850344,  Name="New York"}
     };
 
-    //public class Location
-    //{
-    //    public double Latitude { get; set; }
-    //    public double Longitude { get; set; }
-    //}
+//public class Location
+//{
+//    public double Latitude { get; set; }
+//    public double Longitude { get; set; }
+//}
 
-    //private List<Location> Locations = new List<Location> {
-    //        new Location { Latitude = @currentPosition.Coords.Latitude, Longitude = -118.330491},
-    //    };
+//private List<Location> Locations = new List<Location> {
+//        new Location { Latitude = @currentPosition.Coords.Latitude, Longitude = -118.330491},
+//    };
 
 }
